@@ -42,6 +42,19 @@ namespace UnityEngine.XR.Templates.AR
         }
 
         [SerializeField]
+        [Tooltip("Button that changed the color of a selected object.")]
+        Button m_ColorButton;
+
+        /// <summary>
+        /// Button that changes color of a selected object.
+        /// </summary>
+        public Button colorButton
+        {
+            get => m_ColorButton;
+            set => m_ColorButton = value;
+        }
+
+        [SerializeField]
         [Tooltip("The menu with all the creatable objects.")]
         GameObject m_ObjectMenu;
 
@@ -104,6 +117,19 @@ namespace UnityEngine.XR.Templates.AR
         {
             get => m_CancelButton;
             set => m_CancelButton = value;
+        }
+
+        [SerializeField]
+        [Tooltip("The color changer component in charge of changing the material of objects.")]
+        ColorChanger m_ColorChanger;
+
+        /// <summary>
+        /// The color changer component.
+        /// </summary>
+        public ColorChanger colorChanger
+        {
+            get => m_ColorChanger;
+            set => m_ColorChanger = value;
         }
 
         [SerializeField]
@@ -231,6 +257,7 @@ namespace UnityEngine.XR.Templates.AR
             m_CreateButton.onClick.AddListener(ShowMenu);
             m_CancelButton.onClick.AddListener(HideMenu);
             m_DeleteButton.onClick.AddListener(DeleteFocusedObject);
+            m_ColorButton.onClick.AddListener(OpenColorMenu);
             m_PlaneManager.trackablesChanged.AddListener(OnPlaneChanged);
         }
 
@@ -243,6 +270,7 @@ namespace UnityEngine.XR.Templates.AR
             m_CreateButton.onClick.RemoveListener(ShowMenu);
             m_CancelButton.onClick.RemoveListener(HideMenu);
             m_DeleteButton.onClick.RemoveListener(DeleteFocusedObject);
+            m_ColorButton.onClick.RemoveListener(OpenColorMenu);
             m_PlaneManager.trackablesChanged.RemoveListener(OnPlaneChanged);
         }
 
@@ -292,10 +320,14 @@ namespace UnityEngine.XR.Templates.AR
                 if (m_ShowObjectMenu)
                 {
                     m_DeleteButton.gameObject.SetActive(false);
+                    m_ColorButton.gameObject.SetActive(false);
+
                 }
                 else
                 {
                     m_DeleteButton.gameObject.SetActive(m_InteractionGroup?.focusInteractable != null);
+                    m_ColorButton.gameObject.SetActive(m_InteractionGroup?.focusInteractable != null);
+
                 }
 
                 m_IsPointerOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(-1);
@@ -305,6 +337,8 @@ namespace UnityEngine.XR.Templates.AR
                 m_IsPointerOverUI = false;
                 m_CreateButton.gameObject.SetActive(true);
                 m_DeleteButton.gameObject.SetActive(m_InteractionGroup?.focusInteractable != null);
+                m_ColorButton.gameObject.SetActive(m_InteractionGroup?.focusInteractable != null);
+
             }
 
             if (!m_IsPointerOverUI && m_ShowOptionsModal)
@@ -337,6 +371,14 @@ namespace UnityEngine.XR.Templates.AR
             }
 
             HideMenu();
+        }
+
+        [SerializeField] List<Material> setMaterial = new List<Material>();
+
+        public void ChangeObjectMaterial(GameObject setobject)
+        {
+            Transform selectedchild = setobject.transform.Find("Visuals");
+            selectedchild.GetComponent<MeshRenderer>().material = setMaterial[Random.Range(0,4)];
         }
 
         void ShowMenu()
@@ -455,6 +497,15 @@ namespace UnityEngine.XR.Templates.AR
             if (currentFocusedObject != null)
             {
                 Destroy(currentFocusedObject.transform.gameObject);
+            }
+        }
+
+        void OpenColorMenu()
+        {
+            var currentFocusedObject = m_InteractionGroup.focusInteractable;
+            if (currentFocusedObject != null)
+            {
+                ChangeObjectMaterial(currentFocusedObject.transform.gameObject);
             }
         }
 
